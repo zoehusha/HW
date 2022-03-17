@@ -1,0 +1,80 @@
+{% extends 'layouts/main.html' %}
+
+{% block content %}
+<script src="/js/checkout.js" defer></script>
+<div class="row justify-content-md-center">
+  <div class="col-6">
+    <div class="text-center mt-40">
+      <h1>
+        CHECKOUT
+      </h1>
+      <p><img src={{images}} style="width:72px;height:72px;" alt="..."></p>
+      <h5 class="text-secondary">
+        {{ name }}
+      </h5>
+      <hr class="mt-40">
+    </div>
+    <div class="card box-shadow mt-40">
+      <div class="card-body">
+        <form id="payment-form">
+          <div id="card-errors" class="d-none alert alert-danger my-2" role="alert"></div>
+          <section>
+            <h2>Shipping Information</h2>
+            <fieldset class="with-state">
+              <label>
+                <span>Name</span>
+                <input name="name" class="field" placeholder="Jenny Rosen" required>
+              </label>
+              <label>
+                <span>Email</span>
+                <input name="email" type="email" class="field" placeholder="jenny@example.com" required>
+              </label>
+              <label>
+                <span>Address</span>
+                <input name="address" class="field" placeholder="185 Berry Street Suite 550">
+              </label>
+              <label>
+                <span>City</span>
+                <input name="city" class="field" placeholder="San Francisco">
+              </label>
+              <label class="state">
+                <span>State</span>
+                <input name="state" class="field" placeholder="CA">
+              </label>
+              <label class="zip">
+                <span>ZIP</span>
+                <input name="postal_code" class="field" placeholder="94107">
+              </label>
+              <label class="select">
+                <span>Country</span>
+                <div id="country" class="field SG">
+                  <select name="country">
+                    <option value="SG">Singapore</option>
+                    <option value="US" selected="selected">United States</option>
+                  </select>
+                </div>
+              </label>
+            </fieldset>
+          </section>
+          <div id="payment-element" name="payment-form"></div>
+          <div class="mt-20 text-center text-secondary border-placeholder">
+          <div class="mt-20">
+            <div hidden id="items">{{ items|tojson }}</div>
+            <button id="submit" class="btn btn-lg btn-block btn-primary">
+              <div class="spinner hidden" id="spinner"></div>
+              <span id="button-text">Pay ${{amount}}</span>
+            </button>
+          </div>
+          <div id="spinner" class="w-100 d-none align-items-center flex-column my-2 p-2">
+            <div class="spinner-border"  role="status">
+              <span class="sr-only"></span>
+            </div>
+            <div class="my-1 text-muted">Making Payment...</div>
+          </div>
+        </form>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
