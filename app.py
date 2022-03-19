@@ -49,6 +49,7 @@ def create_payment_intent():
         automatic_payment_methods={
           'enabled': True,
         },
+        metadata={"book_id":product_id}
         )
       return jsonify({'clientSecret':intent['client_secret'],'paymentIntentId':intent['id']})
   except Exception as e:
@@ -63,8 +64,7 @@ def update_payment_intent():
     intent = stripe.PaymentIntent.modify(
       data['paymentIntentInfo']['paymentIntentId'],
       shipping=data['shipping'],
-      receipt_email=data['customer']['email'],
-      metadata=data['metadata']
+      receipt_email=data['customer']['email']
     )
     return jsonify(success=True), 200
   except Exception as e:
@@ -78,11 +78,57 @@ def confirmation():
     payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
     book_id = payment_intent['metadata']['book_id']
     item = products_data[book_id]
-    return render_template('confirmation.html', status=payment_intent['status'], reference_id=payment_intent_id,
+    status = payment_intent['status']
+    if(status=='succeeded'):
+      message='Payment succeeded!'
+    elif(status=='processing'):
+      message = 'Your payment is processing.'
+    elif(status=='requires_payment_method'):
+      message = 'Your payment was not successful, please try again.'
+    else:
+      message = 'Something went wrong'
+    return render_template('confirmation.html', message=message, reference_id=payment_intent_id,
                            amount=payment_intent['amount']/100, name=item['name'], images=item['images'])
-
   except Exception as e:
     return jsonify(error=str(e)), 403
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    event = None
+    payload = request.data
+    endpoint_secret = os.getenv("WEBHOOK_SECRET")
+    sig_header = request.headers['STRIPE_SIGNATURE']
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        raise e
+
+    # Handle the event
+    if event['type'] == 'payment_intent.payment_failed':
+      payment_intent = event['data']['object']
+      print('Webhook received! Payment for PaymentIntent ' + payment_intent['id'] + ' failed.')
+      # update order with payment failed,
+      # rollback stock information and put items back to shopping cart
+      # send out notification to seller
+    elif event['type'] == 'payment_intent.succeeded':
+      payment_intent = event['data']['object']
+      print('Webhook received! Payment for PaymentIntent ' +
+            payment_intent['id'] + ' succeeded')
+      #update order/shopping cart/stock information
+      #kickoff order fullfillment
+      #send out notification to seller
+    # ... handle other event types
+    else:
+      print('Unhandled event type {}'.format(event['type']))
+
+    return jsonify(success=True)
+
 if __name__ == '__main__':
-  app.run(port=4242, host='127.0.0.1', debug=True)
+  app.run(port=5000, host='127.0.0.1', debug=True)

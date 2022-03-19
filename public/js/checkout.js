@@ -37,7 +37,6 @@ async function handleSubmit(e) {
   e.preventDefault();
   setLoading(true);
   let customer = {}
-  let metadata = {}
   let shipping = {}
   shipping['address'] = {}
   shipping['name'] = document.getElementsByName("name")[0].value
@@ -47,14 +46,13 @@ async function handleSubmit(e) {
   shipping['address']['state'] = document.getElementsByName("state")[0].value
   shipping['address']['postal_code'] = document.getElementsByName("postal_code")[0].value
   shipping['address']['country'] = document.getElementsByName("country")[0].value
-  metadata['book_id'] = JSON.parse(items)['id']
   console.log(JSON.parse(items))
 
   // Update PaymentIntent with receiver's email, Shipping address, item purchased
   const response = await fetch("/update_payment_intent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({customer,shipping,paymentIntentInfo,metadata})
+    body: JSON.stringify({customer,shipping,paymentIntentInfo})
   });
     console.log(response)
 
@@ -64,10 +62,10 @@ async function handleSubmit(e) {
         elements,
         confirmParams: {
           // Make sure to change this to your payment completion page
-          return_url: "http://localhost:4242/confirmation",
+          return_url: "https://book.zoehu.cf/confirmation",
         }
       });
-
+        console.log(error)
       // This point will only be reached if there is an immediate error when
       // confirming the payment. Otherwise, your customer will be redirected to
       // your `return_url`. For some payment methods like iDEAL, your customer will
